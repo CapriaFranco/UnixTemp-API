@@ -85,13 +85,65 @@ const getErrorWithCode = (code: string, lang: Language): { code: string; message
 
 // Root route handler
 app.get("/", (_req: Request, res: Response) => {
-  const manual = `&type={time/unix}
-&format={utc/readable/iso8601/unix/all}
-&lang={en/es/pt}
-&error={en/es/pt}
-&value={[yyyy/mm/dd@hh:mm:ss]/unix}
-
-[Site Web](${API_DOC_URL})`
+  const manual = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>UnixTemp API</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #ecf0f1;
+                background-color: #121212;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1 {
+                color: #ff4136;
+            }
+            pre {
+                background-color: #1e1e1e;
+                border: 1px solid #2c3e50;
+                border-left: 3px solid #ff4136;
+                color: #ecf0f1;
+                page-break-inside: avoid;
+                font-family: monospace;
+                font-size: 15px;
+                line-height: 1.6;
+                margin-bottom: 1.6em;
+                max-width: 100%;
+                overflow: auto;
+                padding: 1em 1.5em;
+                display: block;
+                word-wrap: break-word;
+            }
+            a {
+                color: #ff4136;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>UnixTemp API</h1>
+        <p>Use the following parameters in your API requests:</p>
+        <pre>
+type={time/unix}
+format={utc/readable/iso8601/unix/all}
+lang={en/es/pt}
+error={en/es/pt}
+value={[yyyy/mm/dd@hh:mm:ss]/unix}
+        </pre>
+        <p>For more information, visit our <a href="${API_DOC_URL}">documentation website</a>.</p>
+    </body>
+    </html>
+  `
 
   res.send(manual)
 })
