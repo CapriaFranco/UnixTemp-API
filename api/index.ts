@@ -139,7 +139,7 @@ app.get("/", (_req: Request, res: Response) => {
 &lang={en/es/pt}
 &error={en/es/pt}
 &value={[yyyy/mm/dd@hh:mm:ss]/unix}
-&gmt={+HHMM/-HHMM/+HH/-HH}
+&gmt={HHMM/-HHMM/HH/-HH}
         </pre>
         <p>For more information, visit our <a href="${API_DOC_URL}">documentation website</a>.</p>
     </body>
@@ -231,13 +231,13 @@ app.get("/api/convert", (req: Request, res: Response) => {
     }
 
     // Validate and parse GMT offset
-    const gmtRegex = /^([+-])(\d{2})(?::?(\d{2}))?$/
+    const gmtRegex = /^([+-])?(\d{1,2})(?::?(\d{2}))?$/
     const gmtMatch = gmt.match(gmtRegex)
     if (!gmtMatch) {
       return res.status(400).json({ error: getErrorWithCode("212030", error), documentation: API_DOC_URL })
     }
 
-    const gmtSign = gmtMatch[1] === "+" ? 1 : -1
+    const gmtSign = gmtMatch[1] === "-" ? -1 : 1
     const gmtHours = Number.parseInt(gmtMatch[2])
     const gmtMinutes = Number.parseInt(gmtMatch[3] || "0")
 
