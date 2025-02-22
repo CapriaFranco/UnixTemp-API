@@ -45,7 +45,7 @@ interface ConversionRequest {
   type: ConversionType
   format: OutputFormat
   gmt?: string
-  leng?: Language
+  lang?: Language
   value: string
   error?: Language
 }
@@ -139,6 +139,7 @@ format={utc/readable/iso8601/unix/all}
 lang={en/es/pt}
 error={en/es/pt}
 value={[yyyy/mm/dd@hh:mm:ss]/unix}
+gmt={+HHMM/-HHMM}
         </pre>
         <p>For more information, visit our <a href="${API_DOC_URL}">documentation website</a>.</p>
     </body>
@@ -153,8 +154,8 @@ app.get("/api/convert", (req: Request, res: Response) => {
     const {
       type,
       format,
-      gmt = "0000",
-      leng = Language.EN,
+      gmt = "+0000",
+      lang = Language.EN,
       value,
       error = Language.EN,
     } = req.query as unknown as ConversionRequest
@@ -177,7 +178,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
     if (!Object.values(OutputFormat).includes(format)) {
       return res.status(400).json({ error: getErrorWithCode("212001", error), documentation: API_DOC_URL })
     }
-    if (leng && !Object.values(Language).includes(leng)) {
+    if (lang && !Object.values(Language).includes(lang)) {
       return res.status(400).json({ error: getErrorWithCode("212040", error), documentation: API_DOC_URL })
     }
 
@@ -188,7 +189,9 @@ app.get("/api/convert", (req: Request, res: Response) => {
       if (isNaN(unixTimestamp)) {
         return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
       }
-      if (unixTimestamp < 0) {
+      // Allow negative values, but set a lower limit
+      if (unixTimestamp < -62135596800) {
+        // Unix timestamp for 0001-01-01 00:00:00
         return res.status(400).json({ error: getErrorWithCode("212011", error), documentation: API_DOC_URL })
       }
       if (unixTimestamp > Number.MAX_SAFE_INTEGER) {
@@ -206,7 +209,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
       const [_, year, month, day, hour, minute, second] = match.map(Number)
 
       // Validate date components
-      if (year < 1970 || year > 9999) {
+      if (year < 1 || year > 9999) {
         return res.status(400).json({ error: getErrorWithCode("212020", error), documentation: API_DOC_URL })
       }
       if (month < 1 || month > 12) {
@@ -225,27 +228,28 @@ app.get("/api/convert", (req: Request, res: Response) => {
         return res.status(400).json({ error: getErrorWithCode("212025", error), documentation: API_DOC_URL })
       }
 
-      date = moment(value, "YYYY/MM/DD@HH:mm:ss")
+      date = moment.utc(`${year}-${month}-${day} ${hour}:${minute}:${second}`, "YYYY-MM-DD HH:mm:ss")
       if (!date.isValid()) {
         return res.status(400).json({ error: getErrorWithCode("212020", error), documentation: API_DOC_URL })
       }
     }
 
     // Validate and parse GMT offset
-    const gmtRegex = /^([+-]?\d{2})(?::?(\d{2}))?$/
+    const gmtRegex = /^([+-])(\d{2})(?::?(\d{2}))?$/
     const gmtMatch = gmt.match(gmtRegex)
     if (!gmtMatch) {
       return res.status(400).json({ error: getErrorWithCode("212030", error), documentation: API_DOC_URL })
     }
 
-    const gmtHours = Number.parseInt(gmtMatch[1])
-    const gmtMinutes = Number.parseInt(gmtMatch[2] || "0")
+    const gmtSign = gmtMatch[1] === "+" ? 1 : -1
+    const gmtHours = Number.parseInt(gmtMatch[2])
+    const gmtMinutes = Number.parseInt(gmtMatch[3] || "0")
 
-    if (Math.abs(gmtHours) > 14 || (Math.abs(gmtHours) === 14 && gmtMinutes > 0)) {
+    if (gmtHours > 14 || (gmtHours === 14 && gmtMinutes > 0)) {
       return res.status(400).json({ error: getErrorWithCode("212031", error), documentation: API_DOC_URL })
     }
 
-    const gmtOffset = `${gmtHours.toString().padStart(2, "0")}${gmtMinutes.toString().padStart(2, "0")}`
+    const gmtOffset = gmtSign * (gmtHours * 60 + gmtMinutes)
     date.utcOffset(gmtOffset)
 
     const getFormattedResult = (format: OutputFormat): string | number => {
@@ -253,9 +257,9 @@ app.get("/api/convert", (req: Request, res: Response) => {
         case OutputFormat.UTC:
           return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
         case OutputFormat.READABLE:
-          moment.locale(leng)
+          moment.locale(lang)
           return date.format(
-            langConfig[leng]?.dateFormat || langConfig.en?.dateFormat || "MMMM D, YYYY, HH:mm:ss [GMT]Z",
+            langConfig[lang]?.dateFormat || langConfig.en?.dateFormat || "MMMM D, YYYY, HH:mm:ss [GMT]Z",
           )
         case OutputFormat.ISO8601:
           return date.toISOString()
