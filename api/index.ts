@@ -134,12 +134,12 @@ app.get("/", (_req: Request, res: Response) => {
         <h1>UnixTemp API</h1>
         <p>Use the following parameters in your API requests:</p>
         <pre>
-type={time/unix}
-format={utc/readable/iso8601/unix/all}
-lang={en/es/pt}
-error={en/es/pt}
-value={[yyyy/mm/dd@hh:mm:ss]/unix}
-gmt={+HHMM/-HHMM}
+            &type={time/unix}
+            &format={utc/readable/iso8601/unix/all}
+            &lang={en/es/pt}
+            &error={en/es/pt}
+            &value={[yyyy/mm/dd@hh:mm:ss]/unix}
+            &gmt={+HHMM/-HHMM/+HH/-HH}
         </pre>
         <p>For more information, visit our <a href="${API_DOC_URL}">documentation website</a>.</p>
     </body>
@@ -185,19 +185,11 @@ app.get("/api/convert", (req: Request, res: Response) => {
     let date: moment.Moment
 
     if (type === ConversionType.TIME) {
-      const unixTimestamp = Number(value)
-      if (isNaN(unixTimestamp)) {
+      const unixTimestamp = BigInt(value)
+      if (unixTimestamp < BigInt(-62135596800000) || unixTimestamp > BigInt(9223372036854775807)) {
         return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
       }
-      // Allow negative values, but set a lower limit
-      if (unixTimestamp < -62135596800) {
-        // Unix timestamp for 0001-01-01 00:00:00
-        return res.status(400).json({ error: getErrorWithCode("212011", error), documentation: API_DOC_URL })
-      }
-      if (unixTimestamp > Number.MAX_SAFE_INTEGER) {
-        return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
-      }
-      date = moment.unix(unixTimestamp)
+      date = moment(Number(unixTimestamp))
     } else {
       const dateRegex = /^(\d{4})\/(\d{2})\/(\d{2})@(\d{2}):(\d{2}):(\d{2})$/
       const match = value.match(dateRegex)
