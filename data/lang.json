@@ -1,0 +1,55 @@
+{
+    "en": {
+      "dateFormat": "MMMM D, YYYY, HH:mm:ss [GMT]Z",
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
+    },
+    "es": {
+      "dateFormat": "D [de] MMMM [de] YYYY, HH:mm:ss [GMT]Z",
+      "months": [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre"
+      ]
+    },
+    "pt": {
+      "dateFormat": "D [de] MMMM [de] YYYY, HH:mm:ss [GMT]Z",
+      "months": [
+        "janeiro",
+        "fevereiro",
+        "março",
+        "abril",
+        "maio",
+        "junho",
+        "julho",
+        "agosto",
+        "setembro",
+        "outubro",
+        "novembro",
+        "dezembro"
+      ]
+    }
+  }
+  
+  
