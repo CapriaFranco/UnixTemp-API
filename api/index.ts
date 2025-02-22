@@ -46,7 +46,7 @@ interface ConversionRequest {
   format: OutputFormat
   gmt?: string
   lang?: Language
-  value: string
+  value: bigint
   error?: Language
 }
 
@@ -185,18 +185,15 @@ app.get("/api/convert", (req: Request, res: Response) => {
     let date: moment.Moment
 
     if (type === ConversionType.TIME) {
-      try {
-        const unixTimestamp = BigInt(value)
-        if (unixTimestamp < BigInt(-62135596800000) || unixTimestamp > BigInt("9223372036854775807")) {
-          return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
-        }
-        date = moment(Number(unixTimestamp))
-      } catch (err) {
+      const unixTimestamp = value
+      if (unixTimestamp < BigInt(-62135596800000) || unixTimestamp > BigInt("9223372036854775807")) {
         return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
       }
+      date = moment(Number(unixTimestamp))
     } else {
+      const dateString = value.toString()
       const dateRegex = /^(\d{4})\/(\d{2})\/(\d{2})@(\d{2}):(\d{2}):(\d{2})$/
-      const match = value.match(dateRegex)
+      const match = dateString.match(dateRegex)
 
       if (!match) {
         return res.status(400).json({ error: getErrorWithCode("212020", error), documentation: API_DOC_URL })
@@ -254,6 +251,10 @@ app.get("/api/convert", (req: Request, res: Response) => {
           return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
         case OutputFormat.READABLE:
           moment.locale(lang)
+          const monthNames = langConfig[lang]?.months || langConfig.en?.months
+          if (monthNames) {
+            moment.updateLocale(lang, { months: Object.values(monthNames) })
+          }
           return date.format(
             langConfig[lang]?.dateFormat || langConfig.en?.dateFormat || "MMMM D, YYYY, HH:mm:ss [GMT]Z",
           )
