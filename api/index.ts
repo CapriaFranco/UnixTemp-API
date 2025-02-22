@@ -53,12 +53,12 @@ interface ConversionRequest {
 interface ConversionResponse {
   result?:
     | string
-    | number
+    | bigint
     | {
         utc: string
         readable: string
         iso8601: string
-        unix: number
+        unix: string
       }
   error?: {
     code: string
@@ -134,12 +134,12 @@ app.get("/", (_req: Request, res: Response) => {
         <h1>UnixTemp API</h1>
         <p>Use the following parameters in your API requests:</p>
         <pre>
-            &type={time/unix}
-            &format={utc/readable/iso8601/unix/all}
-            &lang={en/es/pt}
-            &error={en/es/pt}
-            &value={[yyyy/mm/dd@hh:mm:ss]/unix}
-            &gmt={+HHMM/-HHMM/+HH/-HH}
+&type={time/unix}
+&format={utc/readable/iso8601/unix/all}
+&lang={en/es/pt}
+&error={en/es/pt}
+&value={[yyyy/mm/dd@hh:mm:ss]/unix}
+&gmt={+HHMM/-HHMM/+HH/-HH}
         </pre>
         <p>For more information, visit our <a href="${API_DOC_URL}">documentation website</a>.</p>
     </body>
@@ -185,11 +185,15 @@ app.get("/api/convert", (req: Request, res: Response) => {
     let date: moment.Moment
 
     if (type === ConversionType.TIME) {
-      const unixTimestamp = BigInt(value)
-      if (unixTimestamp < BigInt(-62135596800000) || unixTimestamp > BigInt(9223372036854775807)) {
+      try {
+        const unixTimestamp = BigInt(value)
+        if (unixTimestamp < BigInt(-62135596800000) || unixTimestamp > BigInt("9223372036854775807")) {
+          return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
+        }
+        date = moment(Number(unixTimestamp))
+      } catch (err) {
         return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
       }
-      date = moment(Number(unixTimestamp))
     } else {
       const dateRegex = /^(\d{4})\/(\d{2})\/(\d{2})@(\d{2}):(\d{2}):(\d{2})$/
       const match = value.match(dateRegex)
@@ -244,7 +248,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
     const gmtOffset = gmtSign * (gmtHours * 60 + gmtMinutes)
     date.utcOffset(gmtOffset)
 
-    const getFormattedResult = (format: OutputFormat): string | number => {
+    const getFormattedResult = (format: OutputFormat): string | bigint => {
       switch (format) {
         case OutputFormat.UTC:
           return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
@@ -256,7 +260,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
         case OutputFormat.ISO8601:
           return date.toISOString()
         case OutputFormat.UNIX:
-          return date.unix()
+          return BigInt(date.valueOf())
         default:
           throw new Error("Invalid output format")
       }
@@ -264,12 +268,12 @@ app.get("/api/convert", (req: Request, res: Response) => {
 
     let result:
       | string
-      | number
+      | bigint
       | {
           utc: string
           readable: string
           iso8601: string
-          unix: number
+          unix: string
         }
 
     if (format === OutputFormat.ALL) {
@@ -277,10 +281,13 @@ app.get("/api/convert", (req: Request, res: Response) => {
         utc: getFormattedResult(OutputFormat.UTC) as string,
         readable: getFormattedResult(OutputFormat.READABLE) as string,
         iso8601: getFormattedResult(OutputFormat.ISO8601) as string,
-        unix: getFormattedResult(OutputFormat.UNIX) as number,
+        unix: (getFormattedResult(OutputFormat.UNIX) as bigint).toString(),
       }
     } else {
       result = getFormattedResult(format)
+      if (typeof result === "bigint") {
+        result = result.toString()
+      }
     }
 
     const response: ConversionResponse = { result }
