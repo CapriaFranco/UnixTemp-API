@@ -37,7 +37,7 @@
 | `type` | string | Sim | Tipo de conversão: `time` (Unix para data) ou `unix` (data para Unix) |
 | `format` | string | Sim | Formato de saída: `utc`, `readable`, `iso8601`, `unix` ou `all` |
 | `gmt` | string | Não | Deslocamento GMT no formato `HHmm` (padrão: `0000`) |
-| `leng` | string | Não | Idioma da saída legível: `en`, `es`, `pt` (padrão: `en`) |
+| `lang` | string | Não | Idioma da saída legível: `en`, `es`, `pt` (padrão: `en`) |
 | `value` | string | Sim | O timestamp (Unix) ou data (YYYY/MM/DD@HH:mm:ss) a ser convertido |
 | `error` | string | Não | Idioma das mensagens de erro: `en`, `es`, `pt` (padrão: `en`) |
 

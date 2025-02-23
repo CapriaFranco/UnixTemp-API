@@ -98,7 +98,7 @@ If an error occurs, the API returns a JSON response with an error message.
 
 ### JavaScript (Fetch API)
 ```javascript
-fetch("https://your-api.comhttps://unixtemp.vercel.app/api/convert?type=time&format=readable&value=1745549400")
+fetch("https://unixtemp.vercel.app/api/convert?type=time&format=readable&value=1745549400")
   .then(response => response.json())
   .then(data => console.log(data.result));
 ```
@@ -106,7 +106,7 @@ fetch("https://your-api.comhttps://unixtemp.vercel.app/api/convert?type=time&for
 ### Python (Requests)
 ```python
 import requests
-response = requests.get("https://your-api.comhttps://unixtemp.vercel.app/api/convert", params={
+response = requests.get("https://unixtemp.vercel.app/api/convert", params={
     "type": "time",
     "format": "readable",
     "value": "1745549400"
@@ -118,12 +118,24 @@ print(response.json()["result"])
 
 | Error Code | Message |
 |------------|---------|
-| `400` | Missing required parameters |
-| `400` | Invalid conversion type |
-| `400` | Invalid output format |
-| `400` | Invalid language |
-| `400` | Invalid timestamp or date format |
-| `500` | Internal server error |
+| `212000` | Missing required parameter: type={time/unix} |
+| `212001` | Missing required parameter: format={utc/readable/iso8601/unix/all} |
+| `212002` | Missing required parameter: value={timestamp/date} |
+| `212010` | Unix timestamp exceeds maximum allowed value |
+| `212011` | Unix timestamp cannot be negative |
+| `212020` | Invalid year in date format |
+| `212021` | Invalid month in date format (must be 01-12) |
+| `212022` | Invalid day for the specified month and year |
+| `212023` | Invalid hour in date format (must be 00-23) |
+| `212024` | Invalid minutes in date format (must be 00-59) |
+| `212025` | Invalid seconds in date format (must be 00-59) |
+| `212030` | Invalid GMT offset format |
+| `212031` | GMT offset exceeds valid range |
+| `212040` | Unsupported language code |
+| `212050` | Invalid error language specified |
+| `212090` | API is currently unavailable |
+| `212091` | API is experiencing high load |
+| `212092` | Service maintenance in progress |
 
 ## Best Practices
 - Always validate input parameters before making requests.

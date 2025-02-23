@@ -225,30 +225,30 @@ app.get("/api/convert", (req: Request, res: Response) => {
       if (!date.isValid()) {
         return res.status(400).json({ error: getErrorWithCode("212020", error), documentation: API_DOC_URL })
       }
+
+      // Apply GMT offset
+      const gmtRegex = /^([+-])?(\d{1,2})(?::?(\d{2}))?$/
+      const gmtMatch = gmt.match(gmtRegex)
+      if (!gmtMatch) {
+        return res.status(400).json({ error: getErrorWithCode("212030", error), documentation: API_DOC_URL })
+      }
+
+      const gmtSign = gmtMatch[1] === "-" ? -1 : 1
+      const gmtHours = Number.parseInt(gmtMatch[2])
+      const gmtMinutes = Number.parseInt(gmtMatch[3] || "0")
+
+      if (gmtHours > 14 || (gmtHours === 14 && gmtMinutes > 0)) {
+        return res.status(400).json({ error: getErrorWithCode("212031", error), documentation: API_DOC_URL })
+      }
+
+      const gmtOffset = gmtSign * (gmtHours * 60 + gmtMinutes)
+      date.utcOffset(gmtOffset)
     }
-
-    // Validate and parse GMT offset
-    const gmtRegex = /^([+-])?(\d{1,2})(?::?(\d{2}))?$/
-    const gmtMatch = gmt.match(gmtRegex)
-    if (!gmtMatch) {
-      return res.status(400).json({ error: getErrorWithCode("212030", error), documentation: API_DOC_URL })
-    }
-
-    const gmtSign = gmtMatch[1] === "-" ? -1 : 1
-    const gmtHours = Number.parseInt(gmtMatch[2])
-    const gmtMinutes = Number.parseInt(gmtMatch[3] || "0")
-
-    if (gmtHours > 14 || (gmtHours === 14 && gmtMinutes > 0)) {
-      return res.status(400).json({ error: getErrorWithCode("212031", error), documentation: API_DOC_URL })
-    }
-
-    const gmtOffset = gmtSign * (gmtHours * 60 + gmtMinutes)
-    date.utcOffset(gmtOffset)
 
     const getFormattedResult = (format: OutputFormat): string | bigint => {
       switch (format) {
         case OutputFormat.UTC:
-          return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
+          return date.clone().utc().format("MM/DD/YYYY @ h:mm A [UTC]Z")
         case OutputFormat.READABLE:
           moment.locale(lang)
           const monthNames = langConfig[lang]?.months || langConfig.en?.months
@@ -261,7 +261,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
         case OutputFormat.ISO8601:
           return date.toISOString()
         case OutputFormat.UNIX:
-          return BigInt(date.valueOf())
+          return BigInt(date.valueOf() / 1000) // Convert to seconds
         default:
           throw new Error("Invalid output format")
       }

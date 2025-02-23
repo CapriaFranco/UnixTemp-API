@@ -97,7 +97,7 @@ Si ocurre un error, la API devuelve una respuesta JSON con un mensaje de error.
 
 ### JavaScript (Fetch API)
 ```javascript
-fetch("https://your-api.comhttps://unixtemp.vercel.app/api/convert?type=time&format=readable&value=1745549400")
+fetch("https://unixtemp.vercel.app/api/convert?type=time&format=readable&value=1745549400")
   .then(response => response.json())
   .then(data => console.log(data.result));
 ```
@@ -105,7 +105,7 @@ fetch("https://your-api.comhttps://unixtemp.vercel.app/api/convert?type=time&for
 ### Python (Requests)
 ```python
 import requests
-response = requests.get("https://your-api.comhttps://unixtemp.vercel.app/api/convert", params={
+response = requests.get("https://unixtemp.vercel.app/api/convert", params={
     "type": "time",
     "format": "readable",
     "value": "1745549400"
@@ -117,12 +117,24 @@ print(response.json()["result"])
 
 | Código de Error | Mensaje |
 |----------------|---------|
-| `400` | Faltan parámetros obligatorios |
-| `400` | Tipo de conversión inválido |
-| `400` | Formato de salida inválido |
-| `400` | Idioma inválido |
-| `400` | Timestamp o formato de fecha inválido |
-| `500` | Error interno del servidor |
+| `212000` | Falta el parámetro requerido: type={time/unix} |
+| `212001` | Falta el parámetro requerido: format={utc/readable/iso8601/unix/all} |
+| `212002` | Falta el parámetro requerido: value={timestamp/fecha} |
+| `212010` | El timestamp Unix excede el valor máximo permitido |
+| `212011` | El timestamp Unix no puede ser negativo |
+| `212020` | Año inválido en el formato de fecha |
+| `212021` | Mes inválido en el formato de fecha (debe ser 01-12) |
+| `212022` | Día inválido para el mes y año especificados |
+| `212023` | Hora inválida en el formato de fecha (debe ser 00-23) |
+| `212024` | Minutos inválidos en el formato de fecha (debe ser 00-59) |
+| `212025` | Segundos inválidos en el formato de fecha (debe ser 00-59) |
+| `212030` | Formato de GMT inválido |
+| `212031` | El offset GMT excede el rango válido |
+| `212040` | Código de idioma no soportado |
+| `212050` | Idioma de error especificado inválido |
+| `212090` | API no disponible actualmente |
+| `212091` | API experimentando alta carga |
+| `212092` | Mantenimiento del servicio en progreso |
 
 ## Mejores Prácticas
 - Validar siempre los parámetros de entrada antes de hacer solicitudes.
