@@ -189,7 +189,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
       if (unixTimestamp < BigInt(-62135596800000) || unixTimestamp > BigInt("9223372036854775807")) {
         return res.status(400).json({ error: getErrorWithCode("212010", error), documentation: API_DOC_URL })
       }
-      date = moment(Number(unixTimestamp))
+      date = moment.unix(Number(unixTimestamp))
     } else {
       const dateString = value.toString()
       const dateRegex = /^(\d{4})\/(\d{2})\/(\d{2})@(\d{2}):(\d{2}):(\d{2})$/
