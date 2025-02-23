@@ -243,7 +243,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
     const getFormattedResult = (format: OutputFormat): string | bigint => {
       switch (format) {
         case OutputFormat.UTC:
-          return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
+          return date.clone().utc().format("MM/DD/YYYY @ h:mm A [UTC]Z")
         case OutputFormat.READABLE:
           moment.locale(lang)
           const monthNames = langConfig[lang]?.months || langConfig.en?.months
@@ -256,7 +256,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
         case OutputFormat.ISO8601:
           return date.clone().utc().toISOString()
         case OutputFormat.UNIX:
-          return BigInt(date.clone().utc().valueOf() / 1000) // Convert to seconds
+          return BigInt(date.valueOf() / 1000) // Convert to seconds
         default:
           throw new Error("Invalid output format")
       }
