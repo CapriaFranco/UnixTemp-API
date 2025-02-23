@@ -1,6 +1,6 @@
 {
     "name": "unixtemp-api",
-    "version": "1.4.9",
+    "version": "1.4.10",
     "description": "API para convertir timestamps Unix",
     "main": "api/index.ts",
     "scripts": {
