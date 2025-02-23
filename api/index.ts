@@ -243,7 +243,7 @@ app.get("/api/convert", (req: Request, res: Response) => {
     const getFormattedResult = (format: OutputFormat): string | bigint => {
       switch (format) {
         case OutputFormat.UTC:
-          return date.clone().utc().format("MM/DD/YYYY @ h:mm A [UTC]Z")
+          return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
         case OutputFormat.READABLE:
           moment.locale(lang)
           const monthNames = langConfig[lang]?.months || langConfig.en?.months
