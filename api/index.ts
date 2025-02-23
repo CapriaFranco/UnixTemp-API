@@ -221,11 +221,6 @@ app.get("/api/convert", (req: Request, res: Response) => {
         return res.status(400).json({ error: getErrorWithCode("212025", error), documentation: API_DOC_URL })
       }
 
-      date = moment.utc(`${year}-${month}-${day} ${hour}:${minute}:${second}`, "YYYY-MM-DD HH:mm:ss")
-      if (!date.isValid()) {
-        return res.status(400).json({ error: getErrorWithCode("212020", error), documentation: API_DOC_URL })
-      }
-
       // Apply GMT offset
       const gmtRegex = /^([+-])?(\d{1,2})(?::?(\d{2}))?$/
       const gmtMatch = gmt.match(gmtRegex)
@@ -242,13 +237,13 @@ app.get("/api/convert", (req: Request, res: Response) => {
       }
 
       const gmtOffset = gmtSign * (gmtHours * 60 + gmtMinutes)
-      date.utcOffset(gmtOffset)
+      date = moment.utc(`${year}-${month}-${day} ${hour}:${minute}:${second}`, "YYYY-MM-DD HH:mm:ss").utcOffset(gmtOffset)
     }
 
     const getFormattedResult = (format: OutputFormat): string | bigint => {
       switch (format) {
         case OutputFormat.UTC:
-          return date.clone().utc().format("MM/DD/YYYY @ h:mm A [UTC]Z")
+          return date.format("MM/DD/YYYY @ h:mm A [UTC]Z")
         case OutputFormat.READABLE:
           moment.locale(lang)
           const monthNames = langConfig[lang]?.months || langConfig.en?.months
